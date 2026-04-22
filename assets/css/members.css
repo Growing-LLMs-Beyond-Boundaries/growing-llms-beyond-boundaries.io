@@ -1,0 +1,107 @@
+.members-section {
+  margin-top: 1.5rem;
+}
+
+.members-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.2rem;
+}
+
+.member-card {
+  text-align: center;
+}
+
+.member-photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: 0.2rem;
+  overflow: hidden;
+  margin-bottom: 1.35rem;
+  background: linear-gradient(180deg, #eef1f5 0%, #d8dde8 100%);
+}
+
+.member-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.45), transparent 35%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.06));
+}
+
+.member-photo-robin {
+  background: linear-gradient(180deg, #f1efe9 0%, #c9d8ea 100%);
+}
+
+.member-photo-haoyu {
+  background: linear-gradient(180deg, #efe2d8 0%, #b8d2e9 100%);
+}
+
+.member-photo-haoran {
+  background: linear-gradient(180deg, #eef1f3 0%, #d1d8df 100%);
+}
+
+.member-initials {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 1rem;
+  z-index: 1;
+  color: rgba(32, 43, 58, 0.88);
+  font-family: var(--header-font);
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.member-name {
+  margin: 0 0 1rem;
+  font-size: 1.55rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.member-name a {
+  color: #2e2e2e;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.member-name a:hover,
+.member-name a:focus {
+  color: #5b2b69;
+}
+
+.member-role,
+.member-affiliation {
+  margin: 0;
+  color: #333b46;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.member-affiliation {
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 991.98px) {
+  .members-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .members-grid {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+  }
+
+  .member-name {
+    font-size: 1.3rem;
+  }
+
+  .member-role,
+  .member-affiliation {
+    font-size: 1rem;
+  }
+}

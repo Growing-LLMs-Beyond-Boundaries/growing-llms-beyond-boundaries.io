@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Members
+title: Founders
 permalink: /members/
 css:
   - /assets/css/members.css
@@ -10,7 +10,7 @@ css:
   <div class="members-grid">
     <article class="member-card">
       <div class="member-photo member-photo-robin">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://www.luor.org/" alt="Robin Haozheng Luo webpage">
+        <img src="https://www.luor.org/static/assets/img/landing/profile.jpeg" alt="Robin Haozheng Luo webpage">
       </div>
       <h2 class="member-name">
         <a href="https://www.luor.org/">Robin Luo</a>
@@ -21,7 +21,7 @@ css:
 
     <article class="member-card">
       <div class="member-photo member-photo-haoyu">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://he-h.github.io/" alt="Haoyu He webpage">
+        <img src="https://he-h.github.io/images/myphoto.JPG" alt="Haoyu He webpage">
       </div>
       <h2 class="member-name">
         <a href="https://he-h.github.io/">Haoyu He</a>
@@ -31,19 +31,8 @@ css:
     </article>
 
     <article class="member-card">
-      <div class="member-photo member-photo-haoran">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://www.linkedin.com/in/haorandai" alt="Haoran Dai webpage">
-      </div>
-      <h2 class="member-name">
-        <a href="https://www.linkedin.com/in/haorandai">Haoran Dai</a>
-      </h2>
-      <p class="member-role">PhD Student</p>
-      <p class="member-affiliation">Illinois Institute of Technology</p>
-    </article>
-
-    <article class="member-card">
       <div class="member-photo member-photo-chenghao">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://chenghao-qiu.github.io/" alt="Chenghao Qiu webpage">
+        <img src="https://chenghao-qiu.github.io/images/profile.png" alt="Chenghao Qiu webpage">
       </div>
       <h2 class="member-name">
         <a href="https://chenghao-qiu.github.io/">Chenghao Qiu</a>
@@ -54,7 +43,7 @@ css:
 
     <article class="member-card">
       <div class="member-photo member-photo-canyu">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://canyuchen.com/" alt="Canyu Chen webpage">
+        <img src="https://canyuchen.com/images/me_20240506.jpg" alt="Canyu Chen webpage">
       </div>
       <h2 class="member-name">
         <a href="https://canyuchen.com/">Canyu Chen</a>
@@ -63,20 +52,10 @@ css:
       <p class="member-affiliation">Northwestern University</p>
     </article>
 
-    <article class="member-card">
-      <div class="member-photo member-photo-guilin">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://guilinhu.github.io/" alt="Guilin Hu webpage">
-      </div>
-      <h2 class="member-name">
-        <a href="https://guilinhu.github.io/">Guilin Hu</a>
-      </h2>
-      <p class="member-role">PhD Student</p>
-      <p class="member-affiliation">University of Washington</p>
-    </article>
 
     <article class="member-card">
       <div class="member-photo member-photo-jiahao">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://sherdencooper.github.io/" alt="Jiahao Yu webpage">
+        <img src="https://sherdencooper.github.io/assets/img/my_photo.jpg" alt="Jiahao Yu webpage">
       </div>
       <h2 class="member-name">
         <a href="https://sherdencooper.github.io/">Jiahao Yu</a>
@@ -86,8 +65,34 @@ css:
     </article>
 
     <article class="member-card">
+      <div class="member-photo member-photo-haoran">
+        <img src="https://media.licdn.com/dms/image/v2/D4D03AQG5CfBv_G5v-Q/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1666918268163?e=1778716800&v=beta&t=T7LsbElCERZX74vhgunCvWxwCAwk3aLbEPHpwo2gJAo" alt="Haoran Dai webpage">
+      </div>
+      <h2 class="member-name">
+        <a href="https://www.linkedin.com/in/haorandai">Haoran Dai</a>
+      </h2>
+      <p class="member-role">PhD Student</p>
+      <p class="member-affiliation">Illinois Institute of Technology</p>
+    </article>
+
+    
+
+    <article class="member-card">
+      <div class="member-photo member-photo-guilin">
+        <img src="https://guilinhu.github.io//images/profile.jpg" alt="Guilin Hu webpage">
+      </div>
+      <h2 class="member-name">
+        <a href="https://guilinhu.github.io/">Guilin Hu</a>
+      </h2>
+      <p class="member-role">PhD Student</p>
+      <p class="member-affiliation">University of Washington</p>
+    </article>
+
+    
+
+    <article class="member-card">
       <div class="member-photo member-photo-moyang">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://scholar.google.com/citations?user=5wPwp7IAAAAJ&hl=en" alt="Moyang Guo webpage">
+        <img src="https://scholar.googleusercontent.com/citations?view_op=medium_photo&user=5wPwp7IAAAAJ&citpid=3" alt="Moyang Guo webpage">
       </div>
       <h2 class="member-name">
         <a href="https://scholar.google.com/citations?user=5wPwp7IAAAAJ&hl=en">Moyang Guo</a>
@@ -98,7 +103,7 @@ css:
 
     <article class="member-card">
       <div class="member-photo member-photo-chingyuan">
-        <img src="https://image.thum.io/get/width/900/crop/1100/https://www.linkedin.com/in/jingyuan-huang-45a50a243/" alt="Ching-yuan Huang webpage">
+        <img src="https://media.licdn.com/dms/image/v2/D5635AQEuwE9u0ThE4g/profile-framedphoto-shrink_800_800/B56ZXxw98_GQAk-/0/1743517901158?e=1777446000&v=beta&t=KGAi0cE9XVPlK8fBIY1lonQFqsjGupMgkMmSxX5wJQE" alt="Ching-yuan Huang webpage">
       </div>
       <h2 class="member-name">
         <a href="https://www.linkedin.com/in/jingyuan-huang-45a50a243/">Ching-yuan Huang</a>

@@ -21,11 +21,6 @@ author:
 
 navbar-links:
   Home: ""
-  Core Knowledge: "core-knowledge"
-  VLM-Gaze: "vlm-gaze"
-  BabySit LLM: "babysit-llm"
-  Not-Just-Scaling: "not-just-scaling"
-  World-to-Words: "world-to-words"
 
 ################
 # --- Logo --- #

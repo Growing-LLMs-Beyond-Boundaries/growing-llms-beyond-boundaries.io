@@ -57,6 +57,18 @@
   letter-spacing: 0.01em;
 }
 
+.research-badge-muted {
+  background: #7d8592;
+}
+
+.research-badge-blue {
+  background: #3c6eb4;
+}
+
+.research-badge-red {
+  background: #b24a45;
+}
+
 .research-title {
   margin: 0 0 0.95rem;
   font-size: 1.75rem;
@@ -72,6 +84,13 @@
 .research-title a:hover,
 .research-title a:focus {
   color: #5b2b69;
+}
+
+.research-meta {
+  margin: -0.2rem 0 0.95rem;
+  color: #6a7079;
+  font-size: 1rem;
+  line-height: 1.45;
 }
 
 .research-link {
@@ -238,6 +257,10 @@ footer .footer-links {
 
   .research-link {
     font-size: 1.15rem;
+  }
+
+  .research-meta {
+    font-size: 0.9rem;
   }
 
   .community-card {

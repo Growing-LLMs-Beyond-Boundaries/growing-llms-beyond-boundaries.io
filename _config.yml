@@ -20,8 +20,8 @@ author: GLB²
 ###############################################
 
 navbar-links:
-  Home: ""
-  Members: "members"
+  Home: "/"
+  Members: "/members/"
 
 ################
 # --- Logo --- #

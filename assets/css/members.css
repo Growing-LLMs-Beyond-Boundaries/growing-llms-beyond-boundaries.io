@@ -21,13 +21,19 @@
   background: linear-gradient(180deg, #eef1f5 0%, #d8dde8 100%);
 }
 
+.member-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .member-photo::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.45), transparent 35%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.06));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.08));
 }
 
 .member-photo-robin {
@@ -42,16 +48,28 @@
   background: linear-gradient(180deg, #eef1f3 0%, #d1d8df 100%);
 }
 
-.member-initials {
-  position: absolute;
-  right: 1.1rem;
-  bottom: 1rem;
-  z-index: 1;
-  color: rgba(32, 43, 58, 0.88);
-  font-family: var(--header-font);
-  font-size: 2.2rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+.member-photo-chenghao {
+  background: linear-gradient(180deg, #ecf0e7 0%, #ccd5c7 100%);
+}
+
+.member-photo-canyu {
+  background: linear-gradient(180deg, #f3ede6 0%, #d7d1e6 100%);
+}
+
+.member-photo-guilin {
+  background: linear-gradient(180deg, #e8eef1 0%, #c4d2d7 100%);
+}
+
+.member-photo-jiahao {
+  background: linear-gradient(180deg, #ece9f2 0%, #cfd4e6 100%);
+}
+
+.member-photo-moyang {
+  background: linear-gradient(180deg, #eef0e8 0%, #d5d8c8 100%);
+}
+
+.member-photo-chingyuan {
+  background: linear-gradient(180deg, #edf1f4 0%, #cfd7df 100%);
 }
 
 .member-name {

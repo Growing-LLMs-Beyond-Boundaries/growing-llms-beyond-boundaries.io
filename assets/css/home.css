@@ -180,6 +180,12 @@ footer .beautiful-jekyll-footer {
   text-decoration: none;
 }
 
+.community-footer-icon img {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
 footer .copyright {
   margin: 0.2rem 0 0.6rem;
   color: #203a5c !important;
@@ -253,5 +259,10 @@ footer .footer-links {
     width: 3.5rem;
     height: 3.5rem;
     font-size: 1.45rem;
+  }
+
+  .community-footer-icon img {
+    width: 1.65rem;
+    height: 1.65rem;
   }
 }

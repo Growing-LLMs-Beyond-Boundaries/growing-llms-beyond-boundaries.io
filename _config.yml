@@ -18,6 +18,8 @@ author: GLB²
 ###############################################
 # --- List of links in the navigation bar --- #
 ###############################################
+url: "https://growing-llms-beyond-boundaries.github.io"
+baseurl: "/growing-llms-beyond-boundaries.io"
 
 navbar-links:
   Home: "/"

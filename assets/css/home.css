@@ -2,6 +2,14 @@
   margin: 3rem 0 1rem;
 }
 
+.section-divider {
+  display: block;
+  width: 12.5rem;
+  height: 1px;
+  margin: 0 auto 2rem;
+  background: #cfcac4;
+}
+
 .research-section-header {
   margin-bottom: 1.75rem;
   text-align: center;
@@ -80,9 +88,127 @@
   text-decoration: none;
 }
 
+.community-section {
+  margin: 2rem 0 0;
+  text-align: center;
+}
+
+.community-section .section-divider:last-child {
+  margin-top: 2rem;
+  margin-bottom: 0;
+}
+
+.community-card {
+  border-radius: 1.25rem;
+  background: #f5f6f8;
+  padding: 4.5rem 2rem 4rem;
+}
+
+.community-card h2 {
+  margin: 0 0 1.5rem;
+  color: #333;
+  font-size: 4rem;
+  font-weight: 800;
+}
+
+.community-card p {
+  margin: 0 auto 2.5rem;
+  max-width: 68rem;
+  color: #243b63;
+  font-size: 2rem;
+  line-height: 1.35;
+}
+
+.community-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  border-radius: 0.8rem;
+  background: #5b1e5d;
+  color: #fff;
+  padding: 1.35rem 3rem;
+  font-family: var(--body-font);
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.community-button:hover,
+.community-button:focus {
+  color: #fff;
+  background: #4b184d;
+  text-decoration: none;
+}
+
+footer {
+  margin-top: 2.75rem;
+  background: #c8cdea;
+}
+
+footer .beautiful-jekyll-footer {
+  padding-top: 2.5rem;
+  padding-bottom: 1.9rem;
+}
+
+.community-footer {
+  margin-bottom: 1.2rem;
+}
+
+.community-footer-icons {
+  display: flex;
+  justify-content: center;
+  gap: 1.1rem;
+}
+
+.community-footer-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.3rem;
+  height: 4.3rem;
+  border-radius: 999px;
+  background: #3d74c1;
+  color: #fff;
+  font-size: 1.8rem;
+  text-decoration: none;
+}
+
+.community-footer-icon:hover,
+.community-footer-icon:focus {
+  color: #fff;
+  background: #2f61aa;
+  text-decoration: none;
+}
+
+footer .copyright {
+  margin: 0.2rem 0 0.6rem;
+  color: #203a5c !important;
+  font-family: var(--header-font);
+  font-size: 1.1rem;
+}
+
+footer .theme-by {
+  margin: 0;
+  color: #203a5c !important;
+  font-size: 1rem;
+}
+
+footer .theme-by a {
+  color: #2f67c0;
+}
+
+footer .footer-links {
+  display: none;
+}
+
 @media (max-width: 767.98px) {
   .research-section {
     margin-top: 2.25rem;
+  }
+
+  .section-divider {
+    width: 8rem;
+    margin-bottom: 1.5rem;
   }
 
   .research-section-header h2 {
@@ -103,5 +229,29 @@
 
   .research-link {
     font-size: 1.15rem;
+  }
+
+  .community-card {
+    padding: 2.5rem 1.1rem 2.4rem;
+  }
+
+  .community-card h2 {
+    font-size: 2.1rem;
+  }
+
+  .community-card p {
+    font-size: 1.1rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .community-button {
+    padding: 1rem 1.5rem;
+    font-size: 1.15rem;
+  }
+
+  .community-footer-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.45rem;
   }
 }

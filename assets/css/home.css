@@ -1,0 +1,107 @@
+.research-section {
+  margin: 3rem 0 1rem;
+}
+
+.research-section-header {
+  margin-bottom: 1.75rem;
+  text-align: center;
+}
+
+.research-divider {
+  display: block;
+  width: 5.5rem;
+  height: 1px;
+  margin: 0 auto 1rem;
+  background: #d7d2cb;
+}
+
+.research-section-header h2 {
+  margin: 0;
+  color: #2f2f2f;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.research-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.research-card {
+  border-left: 4px solid #5b2b69;
+  border-radius: 0.95rem;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(26, 31, 44, 0.08);
+  padding: 1.3rem 1.35rem 1.4rem;
+}
+
+.research-badge {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: #5b2b69;
+  color: #fff;
+  font-family: var(--header-font);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.research-title {
+  margin: 0 0 0.95rem;
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.research-title a {
+  color: #424242;
+  text-decoration: none;
+}
+
+.research-title a:hover,
+.research-title a:focus {
+  color: #5b2b69;
+}
+
+.research-link {
+  color: #5b2b69;
+  font-family: var(--header-font);
+  font-size: 1.55rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.research-link:hover,
+.research-link:focus {
+  color: #44204f;
+  text-decoration: none;
+}
+
+@media (max-width: 767.98px) {
+  .research-section {
+    margin-top: 2.25rem;
+  }
+
+  .research-section-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .research-card {
+    padding: 1.05rem 1rem 1.15rem;
+  }
+
+  .research-badge {
+    font-size: 0.82rem;
+  }
+
+  .research-title {
+    font-size: 1.2rem;
+  }
+
+  .research-link {
+    font-size: 1.15rem;
+  }
+}

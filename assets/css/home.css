@@ -58,7 +58,7 @@
 }
 
 .research-badge-muted {
-  background: #7d8592;
+  background: #8b8f97;
 }
 
 .research-badge-blue {
@@ -103,6 +103,69 @@
 
 .research-link:hover,
 .research-link:focus {
+  color: #44204f;
+  text-decoration: none;
+}
+
+.other-works {
+  margin-top: 2.4rem;
+}
+
+.other-works-title {
+  margin: 0 0 1.35rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid #e1ddd8;
+  color: #3a3a3a;
+  font-size: 2.1rem;
+  font-weight: 500;
+}
+
+.other-works-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.3rem;
+}
+
+.other-work-card {
+  border-radius: 0.95rem;
+  background: #f5f6f8;
+  padding: 1.45rem 1.5rem 1.35rem;
+}
+
+.other-work-heading {
+  margin: 0 0 0.9rem;
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.08;
+}
+
+.other-work-heading a {
+  color: #383838;
+  text-decoration: none;
+}
+
+.other-work-heading a:hover,
+.other-work-heading a:focus {
+  color: #5b2b69;
+}
+
+.other-work-meta {
+  margin: 0 0 0.95rem;
+  color: #5b2b69;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.other-work-link {
+  color: #5b2b69;
+  font-family: var(--body-font);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.other-work-link:hover,
+.other-work-link:focus {
   color: #44204f;
   text-decoration: none;
 }
@@ -257,6 +320,27 @@ footer .footer-links {
 
   .research-link {
     font-size: 1.15rem;
+  }
+
+  .other-works-title {
+    font-size: 1.55rem;
+  }
+
+  .other-works-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .other-work-card {
+    padding: 1.05rem 1rem 1rem;
+  }
+
+  .other-work-heading {
+    font-size: 1.3rem;
+  }
+
+  .other-work-meta,
+  .other-work-link {
+    font-size: 0.95rem;
   }
 
   .research-meta {

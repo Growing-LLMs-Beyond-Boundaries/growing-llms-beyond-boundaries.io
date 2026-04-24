@@ -158,7 +158,7 @@ css:
 
     <article class="member-card">
       <div class="member-photo member-photo-haoxu">
-        <img src="https://gaingod-xu.github.io/images/HaoXu.png" alt="Hao Xu webpage">
+        <img src="https://connects.catalyst.harvard.edu/Profiles/profile/Modules/CustomViewPersonGeneralInfo/PhotoHandler.ashx?NodeID=298628579" alt="Hao Xu webpage">
       </div>
       <h2 class="member-name">
         <a href="https://gaingod-xu.github.io/">Hao Xu</a>
@@ -172,7 +172,7 @@ css:
         <img src="https://chenwei-1999.github.io/images/profile.png" alt="Chenwei Xu webpage">
       </div>
       <h2 class="member-name">
-        <a href="https://gaingod-xu.github.io/">Chenwei Xu</a>
+        <a href="https://chenwei-1999.github.io/">Chenwei Xu</a>
       </h2>
       <p class="member-role">PhD Student</p>
       <p class="member-affiliation">Northwestern University</p>

@@ -158,7 +158,7 @@ css:
 
     <article class="member-card">
       <div class="member-photo member-photo-haoxu">
-        <img src="https://connects.catalyst.harvard.edu/Profiles/profile/Modules/CustomViewPersonGeneralInfo/PhotoHandler.ashx?NodeID=298628579" alt="Hao Xu webpage">
+        <img src="https://media.licdn.com/dms/image/v2/D4E03AQGAbNDB6vy97A/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1714575171912?e=1778716800&v=beta&t=yMlqC4jOtqe5yppfZAI-r742cPVaWf2zBKFJy5oGyDc" alt="Hao Xu webpage">
       </div>
       <h2 class="member-name">
         <a href="https://gaingod-xu.github.io/">Hao Xu</a>

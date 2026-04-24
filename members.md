@@ -136,13 +136,46 @@ css:
 
     <article class="member-card">
       <div class="member-photo member-photo-huangfan">
-        <img src="https://lh3.googleusercontent.com/sitesv/AA5AbUCEjshWfRpwnYfA1bzyAwyOAoeDsHsR9FekjcwE_AVDXcBmP052PoaRmxemkAwr6XQqVG8ZgPXwEackkBYKff_ePkZYzxOr5QHIxak2qhaqw5PuCL3Kz-cKbH71dIfAUV1CYz_pcl48yBMd_6q7IYG1Zhn2AV3Btr3oRUJGjvPvau2UsMfFmfETvZGBEN0-xpkQPR7mUTHasbxb6VkgXiYIhuQe9JRxIVwl=w1280" alt="Huang Fan webpage">
+        <img src="https://lh3.googleusercontent.com/sitesv/AA5AbUCZ__ZNba_eXez1--BJAimtzHP7n-REaGPhbr3DBVGzpNsKJoHhxdafHsDXP7Rg3_TrDZQKO31QiWpEd87sfqLTpqSSLtNNhqsqtv3FgJ3fqlqhjjcuL65lGr1x6mRkQWsJyE8TFuL4e1wgjCAOzhvr9nHZfV2bzzUa-Z7ZDW8LeuRQMkTCkAknMvzcHXmrrj9CoCIb1Mq39bGs6ixgfNUi4WQDo_ZAgeVk=w1280" alt="Huang Fan webpage">
       </div>
       <h2 class="member-name">
         <a href="https://sites.google.com/view/fanhuang/">Huang Fan</a>
       </h2>
       <p class="member-role">PhD Student</p>
       <p class="member-affiliation">Indiana University Bloomington</p>
+    </article>
+
+    <article class="member-card">
+      <div class="member-photo member-photo-eric">
+        <img src="https://ericjiang18.github.io/images/1730453326541.jpg" alt="Eric Hanchen Jiang webpage">
+      </div>
+      <h2 class="member-name">
+        <a href="https://ericjiang18.github.io/">Eric Hanchen Jiang</a>
+      </h2>
+      <p class="member-role">PhD Student</p>
+      <p class="member-affiliation">UCLA</p>
+    </article>
+
+    <article class="member-card">
+      <div class="member-photo member-photo-haoxu">
+        <img src="https://gaingod-xu.github.io/images/HaoXu.png" alt="Hao Xu webpage">
+      </div>
+      <h2 class="member-name">
+        <a href="https://gaingod-xu.github.io/">Hao Xu</a>
+      </h2>
+      <p class="member-role">Research Fellow</p>
+      <p class="member-affiliation">Harvard Medical School</p>
+    </article>
+
+    <article class="member-card">
+      <div class="member-photo member-photo-haoxu">
+        <img src="https://chenwei-1999.github.io/images/profile.png" alt="Chenwei Xu webpage">
+      </div>
+      <h2 class="member-name">
+        <a href="https://gaingod-xu.github.io/">Chenwei Xu</a>
+      </h2>
+      <p class="member-role">PhD Student</p>
+      <p class="member-affiliation">Northwestern University</p>
     </article>
   </div>
 </section>

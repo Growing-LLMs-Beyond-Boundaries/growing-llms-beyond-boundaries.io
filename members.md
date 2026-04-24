@@ -136,7 +136,7 @@ css:
 
     <article class="member-card">
       <div class="member-photo member-photo-huangfan">
-        <img src="https://lh3.googleusercontent.com/sitesv/AA5AbUCZ__ZNba_eXez1--BJAimtzHP7n-REaGPhbr3DBVGzpNsKJoHhxdafHsDXP7Rg3_TrDZQKO31QiWpEd87sfqLTpqSSLtNNhqsqtv3FgJ3fqlqhjjcuL65lGr1x6mRkQWsJyE8TFuL4e1wgjCAOzhvr9nHZfV2bzzUa-Z7ZDW8LeuRQMkTCkAknMvzcHXmrrj9CoCIb1Mq39bGs6ixgfNUi4WQDo_ZAgeVk=w1280" alt="Huang Fan webpage">
+        <img src="https://scholar.googleusercontent.com/citations?view_op=medium_photo&user=2-6ICS4AAAAJ&citpid=11" alt="Huang Fan webpage">
       </div>
       <h2 class="member-name">
         <a href="https://sites.google.com/view/fanhuang/">Huang Fan</a>

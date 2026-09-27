@@ -23,7 +23,7 @@ baseurl: "/growing-llms-beyond-boundaries.io"
 
 navbar-links:
   Home: "/"
-  Founders: "/members/"
+  OASIS: "https://oasis-research.github.io/"
 
 ################
 # --- Logo --- #

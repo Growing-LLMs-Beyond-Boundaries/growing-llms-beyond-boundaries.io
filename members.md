@@ -2,6 +2,7 @@
 layout: page
 title: Founders
 permalink: /members/
+published: false
 css:
   - /assets/css/members.css
 ---

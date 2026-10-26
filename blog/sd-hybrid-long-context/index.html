@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Speculative decoding loses its long-context edge on hybrid models · GLB²</title>
+  <meta name="description" content="On Qwen3.5-4B, a hybrid Gated DeltaNet model, DFlash speculative decoding falls from 1.64x on short prompts to 1.2x beyond 32K tokens. Why, and what wins some of it back.">
+  <meta property="og:title" content="Speculative decoding loses its long-context edge on hybrid models">
+  <meta property="og:description" content="On Qwen3.5-4B, DFlash speculative decoding falls from 1.64x on short prompts to 1.2x beyond 32K tokens. A GLB² research note.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://growing-llms-beyond-boundaries.github.io/growing-llms-beyond-boundaries.io/blog/sd-hybrid-long-context/">
+  <link rel="canonical" href="https://growing-llms-beyond-boundaries.github.io/growing-llms-beyond-boundaries.io/blog/sd-hybrid-long-context/">
+  <link rel="icon" href="../../favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* Layout: OASIS research-page frame. A bordered 1040px column, a 148px label rail beside each section, hairline rules between sections. Light only, as on the OASIS site. */
+    :root {
+      --paper: #fcfcfc;
+      --ink: #202020;
+      --body: #5e5e5e;
+      --muted: #707070;
+      --line: #e8e8e8;
+      --soft: #f4f4f4;
+      --series-a: #929292;
+      --series-b: #242424;
+      --overhead: #d0d0d0;
+      --font: 'Geist', 'Helvetica Neue', Arial, sans-serif;
+      --mono: 'Geist Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+      --frame: 1040px;
+      --track: 820px;
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 32px; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.65 var(--font); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    p, h1, h2, h3, figure, dl, dd { margin: 0; }
+    a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--ink); outline-offset: 6px; }
+    a:hover { color: var(--muted); }
+    code { font-family: var(--mono); font-size: .88em; color: var(--ink); }
+  
+    .page { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0; }
+    .site-frame { width: min(var(--frame), 100%); margin-inline: auto; border-inline: 1px solid var(--line); background: var(--paper); }
+  
+    .site-header { min-height: 86px; padding: 20px 36px; display: flex; align-items: center; gap: 40px; border-bottom: 1px solid var(--line); }
+    .wordmark { display: inline-flex; align-items: center; gap: 9px; font-size: 22px; font-weight: 550; letter-spacing: -.07em; line-height: 1.1; }
+    .brand-symbol { font-size: 26px; font-weight: 400; letter-spacing: -.1em; margin-right: 3px; }
+    .wordmark-note { color: var(--muted); font-size: 14px; font-weight: 400; letter-spacing: -.02em; padding-left: 13px; margin-left: 6px; border-left: 1px solid #d9d9d9; }
+    nav { display: flex; gap: 28px; margin-left: auto; font-size: 14px; }
+  
+    .hero { padding: 99px 32px 64px; text-align: center; }
+    .paper-meta { display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 14px; color: #555; }
+    .meta-divider { width: 1px; height: 12px; background: #c9c9c9; }
+    h1 { margin: 28px auto 26px; font-size: clamp(40px, 5.2vw, 66px); line-height: 1.07; font-weight: 450; letter-spacing: -.06em; max-width: 860px; }
+    .hero-deck { font-size: 21px; font-weight: 400; letter-spacing: -.035em; color: #6b6b6b; max-width: 700px; margin-inline: auto; }
+  
+    .band, .reading-section, .wide-section { margin-inline: max(64px, calc((100% - var(--track)) / 2)); }
+    .band { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 27px 0 29px; display: grid; grid-template-columns: 148px minmax(0, 1fr); align-items: baseline; gap: 25px; }
+    .band h2 { font-size: 13px; color: var(--muted); font-weight: 400; }
+    .band p { font-size: 14px; color: #444; }
+  
+    .result-highlights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 46px 0 0; }
+    .result-highlights article { padding-right: 30px; min-width: 0; }
+    .result-highlights article + article { padding-left: 48px; padding-right: 0; border-left: 1px solid var(--line); }
+    .metric-label { font-size: 14px; line-height: 1.6; }
+    .metric-label > span { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .metric-values { display: flex; gap: 18px; align-items: baseline; white-space: nowrap; font-size: clamp(32px, 3.8vw, 51px); line-height: 1.2; letter-spacing: -.07em; margin: 25px 0 22px; font-variant-numeric: tabular-nums; }
+    .metric-values strong { font-weight: 450; }
+    .metric-before { color: #828282; }
+    .metric-arrow { color: #9a9a9a; font-size: .6em; align-self: center; font-weight: 400; }
+    .metric-context p { font-size: 13px; color: var(--muted); }
+  
+    .reading-section { padding: 72px 0; display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: 25px; border-top: 1px solid var(--line); }
+    .reading-section.first { border-top: 0; }
+    .section-label { display: flex; flex-direction: column; gap: 9px; align-items: flex-start; }
+    .section-number { font-size: 12px; line-height: 1.5; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .section-label h2 { font-size: 17px; line-height: 1.45; font-weight: 450; letter-spacing: -.025em; }
+    .prose { min-width: 0; }
+    .prose p { color: var(--body); font-size: 17px; line-height: 1.85; letter-spacing: -.018em; margin-bottom: 20px; text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+    .prose p:last-child { margin-bottom: 0; }
+    .prose p.lead { font-size: 27px; line-height: 1.45; letter-spacing: -.045em; color: #292929; margin-bottom: 28px; text-align: left; hyphens: manual; -webkit-hyphens: manual; }
+    .prose strong { color: var(--ink); font-weight: 500; }
+    .prose a, .section-source a, figcaption a { color: #333; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #bbb; }
+  
+    .findings { list-style: none; padding: 0; margin: 4px 0 0; counter-reset: f; }
+    .findings li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 18px 0; border-top: 1px solid var(--line); font-size: 16px; line-height: 1.75; color: var(--body); }
+    .findings li:last-child { border-bottom: 1px solid var(--line); }
+    .findings li::before { counter-increment: f; content: counter(f, decimal-leading-zero); font-size: 12px; color: var(--muted); padding-top: 4px; font-variant-numeric: tabular-nums; }
+    .findings strong { color: var(--ink); font-weight: 500; }
+  
+    .protocol { margin: 6px 0 0; font-size: 14px; }
+    .protocol > div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 22px; padding-block: 13px; border-bottom: 1px solid var(--line); }
+    .protocol > div:first-child { border-top: 1px solid var(--line); }
+    .protocol dt { color: var(--muted); }
+    .protocol dd { line-height: 1.7; color: #333; }
+  
+    .wide-section { padding: 0 0 72px; }
+    .subsection-heading { margin: 48px 0 25px; }
+    .subsection-heading h3 { font-size: 23px; line-height: 1.35; font-weight: 450; letter-spacing: -.04em; margin-bottom: 14px; text-wrap: balance; }
+    .subsection-heading p { font-size: 16px; line-height: 1.8; color: #666; text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+  
+    .figure { margin: 0; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 10px 26px; font-size: 13px; color: #333; margin-bottom: 14px; }
+    .chart-legend span { display: inline-flex; align-items: center; gap: 9px; }
+    .swatch-line { width: 26px; height: 0; border-top: 2px solid var(--series-b); }
+    .swatch-line.dashed { border-top: 2px dashed var(--series-a); }
+    .swatch-box { width: 12px; height: 12px; border-radius: 2px; background: var(--series-b); }
+    .swatch-box.light { background: var(--overhead); }
+    .chart-box { position: relative; background: #fff; border: 1px solid var(--line); padding: 22px 18px 14px; }
+    .chart { width: 100%; }
+    .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .chart text { font-family: var(--font); }
+    .tooltip { position: absolute; z-index: 5; pointer-events: none; max-width: 270px; padding: 10px 12px; background: #fff; border: 1px solid #dcdcdc; border-radius: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.08); font-size: 12px; line-height: 1.6; color: #333; font-variant-numeric: tabular-nums; }
+    .tooltip b { font-weight: 550; color: var(--ink); }
+    figcaption { font-size: 13px; line-height: 1.7; color: var(--muted); margin: 15px 0 0; text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+    figcaption span { color: #333; }
+  
+    .table-wrap { overflow-x: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 28px; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; line-height: 1.6; white-space: nowrap; font-variant-numeric: tabular-nums; text-align: left; }
+    caption { text-align: left; font-size: 13px; color: var(--muted); padding: 16px 0 6px; }
+    th, td { text-align: left; padding: 12px 16px; }
+    thead { border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+    thead th { font-weight: 400; }
+    thead th:first-child, tbody th { padding-left: 0; }
+    tbody th { font-weight: 400; }
+    tbody tr + tr { border-top: 1px solid #f0f0f0; }
+    td.num, th.num { text-align: right; }
+    .group-head th { padding-bottom: 0; color: #333; font-size: 12px; }
+    .hl { background: #efefef; }
+    .hl td, .hl th { font-weight: 550; }
+    .section-source { font-size: 12px; line-height: 1.8; color: var(--muted); margin: 14px 0 0; }
+  
+    .equation { margin: 8px 0 26px; padding: 20px 24px; background: var(--soft); border: 1px solid #ececec; border-radius: 3px; font-family: var(--mono); font-size: 15px; color: var(--ink); overflow-x: auto; white-space: nowrap; }
+    .equation .frac { color: var(--muted); }
+  
+    .decomp { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 6px 0 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .decomp div { padding: 20px 20px 20px 0; min-width: 0; }
+    .decomp div + div { padding-left: 20px; border-left: 1px solid var(--line); }
+    .decomp .v { display: block; font-size: 34px; letter-spacing: -.06em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+    .decomp .k { display: block; font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  
+    .method-steps { list-style: none; padding: 0; margin: 4px 0 0; }
+    .method-steps li { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 30px; padding: 22px 0; border-top: 1px solid var(--line); }
+    .method-steps li:last-child { border-bottom: 1px solid var(--line); }
+    .method-steps h3 { font-size: 16px; line-height: 1.5; font-weight: 450; letter-spacing: -.02em; }
+    .method-steps .tag { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .method-steps p { font-size: 15px; line-height: 1.8; color: #666; text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+  
+    .citation-content { min-width: 0; }
+    .citation-top { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 16px; font-size: 13px; color: var(--muted); }
+    #copy-citation { border: 1px solid #dcdcdc; background: transparent; color: #333; font: inherit; font-size: 13px; border-radius: 20px; padding: 7px 15px; cursor: pointer; }
+    #copy-citation:hover { background: #eee; }
+    #copy-citation:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+    .citation pre { margin: 0; padding: 24px 27px; background: #f3f3f3; border: 1px solid #eaeaea; border-radius: 3px; font: 12px/1.9 var(--mono); color: #656565; overflow: auto; }
+    .citation pre code { font-size: inherit; color: inherit; }
+    .copy-status { min-height: 24px; font-size: 12px; color: #555; margin-top: 6px; }
+  
+    footer { border-top: 1px solid var(--line); padding: 34px 36px 26px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  
+    h1, h2, h3, .hero-deck, caption { text-wrap: balance; }
+    p, figcaption, dd, li { text-wrap: pretty; }
+    .nw { white-space: nowrap; }
+  
+    @media (max-width: 1100px) {
+      .site-header { padding-inline: 27px; gap: 28px; }
+      .wordmark-note { display: none; }
+      .hero { padding: 86px 26px 56px; }
+      .band, .reading-section, .wide-section { margin-inline: 38px; }
+      .band, .reading-section { grid-template-columns: 112px minmax(0, 1fr); }
+      .prose p.lead { font-size: 25px; }
+      .result-highlights article + article { padding-left: 30px; }
+      .metric-values { gap: 14px; font-size: clamp(30px, 3.5vw, 45px); }
+      .method-steps li { grid-template-columns: 150px minmax(0, 1fr); gap: 22px; }
+    }
+    @media (max-width: 760px) {
+      .site-header { min-height: 64px; padding: 16px 20px; flex-wrap: wrap; gap: 12px; }
+      .wordmark { font-size: 20px; }
+      nav { width: 100%; margin-left: 0; justify-content: space-between; font-size: 12px; gap: 12px; }
+      .hero { padding: 56px 18px 40px; }
+      .paper-meta { font-size: 12px; gap: 12px; }
+      h1 { font-size: clamp(32px, 8.4vw, 46px); line-height: 1.12; margin: 24px auto 20px; }
+      .hero-deck { font-size: 17px; line-height: 1.55; }
+      .band, .reading-section, .wide-section { margin-inline: 20px; }
+      .band { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+      .result-highlights { grid-template-columns: minmax(0, 1fr); gap: 26px; margin-top: 30px; }
+      .result-highlights article { padding: 0; }
+      .result-highlights article + article { padding: 24px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+      .metric-values { font-size: clamp(32px, 9.5vw, 46px); margin: 14px 0 12px; }
+      .reading-section { grid-template-columns: minmax(0, 1fr); gap: 20px; padding-block: 44px; }
+      .section-label { flex-direction: row; align-items: baseline; gap: 14px; }
+      .prose p.lead { font-size: 22px; margin-bottom: 22px; }
+      .prose p { font-size: 16px; line-height: 1.8; }
+      .protocol > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+      .wide-section { padding-bottom: 44px; }
+      .subsection-heading { margin-top: 34px; }
+      .subsection-heading h3 { font-size: 20px; }
+      .chart-box { padding: 16px 10px 10px; margin-inline: -8px; }
+      .decomp { grid-template-columns: minmax(0, 1fr); }
+      .decomp div, .decomp div + div { padding: 16px 0; border-left: 0; }
+      .decomp div + div { border-top: 1px solid var(--line); }
+      .method-steps li { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+      table { font-size: 13px; }
+      th, td { padding: 10px 12px; }
+      footer { padding: 26px 20px 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+<div class="page">
+<div class="site-frame">
+  <header class="site-header">
+    <a class="wordmark" href="../../" aria-label="GLB² home">GLB²<span class="wordmark-note">Research note</span></a>
+    <nav aria-label="Sections"><a href="#findings">Findings</a><a href="#why">Why</a><a href="#tau">tau</a><a href="#trap">Pitfalls</a><a href="#caveats">Caveats</a><a href="#citation">Cite</a></nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="post-title">
+      <div class="paper-meta"><span>Research note</span><span class="meta-divider" aria-hidden="true"></span><span>October 2026</span><span class="meta-divider" aria-hidden="true"></span><span>Speculative decoding</span></div>
+      <h1 id="post-title">Speculative decoding loses its long-context edge on hybrid models</h1>
+      <p class="hero-deck">On Qwen3.5-4B, DFlash goes from 1.64x on short prompts to 1.2x beyond 32K tokens. The draft is not the main problem. The target is too cheap to hide the cost of speculating.</p>
+    </section>
+
+    <section class="band" aria-labelledby="setup-heading">
+      <h2 id="setup-heading">At a glance</h2>
+      <div>
+        <p>Decode speedup over plain decoding, batch 1, one H100, SGLang 0.5.14, from short prompts to 128K tokens of context.</p>
+        <div class="result-highlights">
+          <article>
+            <div class="metric-label">Dense target<span>Qwen3-4B + DFlash draft</span></div>
+            <div class="metric-values"><span class="metric-before">2.04x</span><span class="metric-arrow" aria-hidden="true">→</span><strong>1.83x</strong></div>
+            <div class="metric-context"><p>Short → 128K. The target step grows from 4.2 to 10.5 ms and absorbs the round's fixed cost.</p></div>
+          </article>
+          <article>
+            <div class="metric-label">Hybrid target<span>Qwen3.5-4B (24 Gated DeltaNet + 8 softmax layers) + z-lab DFlash</span></div>
+            <div class="metric-values"><span class="metric-before">1.64x</span><span class="metric-arrow" aria-hidden="true">→</span><strong>1.17x</strong></div>
+            <div class="metric-context"><p>Short → 128K. The target step only grows from 4.1 to 5.5 ms, so the fixed cost stays exposed.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="findings" class="reading-section first" aria-labelledby="findings-heading">
+      <div class="section-label"><span class="section-number">01</span><h2 id="findings-heading">Findings</h2></div>
+      <div class="prose">
+        <p class="lead">Linear attention makes the target's long-context steps cheap. That same cheapness is what takes the gain out of speculative decoding.</p>
+        <ol class="findings">
+          <li><span>On <strong>Qwen3.5-4B + z-lab's DFlash draft</strong>, the speedup over plain decoding is 1.64x on short prompts, 1.21x at 32K and 1.17x at 128K. We found no published long-context numbers for this pairing; the model cards and benchmarks we found use short prompts.</span></li>
+          <li><span>The main cause is <strong>not a worse draft</strong>. The hybrid target costs 4.1 ms per step on short prompts and 5.5 ms at 128K, so the fixed cost of a speculative round (draft forward, draft sampling, a 16-token verify) is never amortised. About two thirds of the gap to the dense model comes from this.</span></li>
+          <li><span><strong>tau falls with context</strong> (2.97 to about 2.0), and the draft's attention window is not the reason: cutting the draft off from everything beyond 4K changes tau by at most 7%.</span></li>
+          <li><span><strong>Fine-tuning the draft on the target's own long-context outputs</strong> raises tau by 4-5% at 32K-128K. Every other change we tried was worth a few percent or nothing.</span></li>
+          <li><span>If you benchmark near 128K with YaRN x4 in SGLang, keep prompt plus output <strong>under 131,072 tokens</strong>. Past that, decoding silently produces garbage and tau appears to collapse.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="setup" class="reading-section" aria-labelledby="setup2-heading">
+      <div class="section-label"><span class="section-number">02</span><h2 id="setup2-heading">Setup</h2></div>
+      <div class="prose">
+        <dl class="protocol">
+          <div><dt>Hybrid target</dt><dd><a href="https://huggingface.co/Qwen/Qwen3.5-4B">Qwen3.5-4B</a>: 24 Gated DeltaNet and 8 softmax attention layers. Draft: <a href="https://huggingface.co/z-lab/Qwen3.5-4B-DFlash">z-lab/Qwen3.5-4B-DFlash</a>, 6 layers (5 with a 4,096-token sliding window, 1 with full attention), block size 16.</dd></div>
+          <div><dt>Dense target</dt><dd>Qwen3-4B, YaRN x4 beyond 32K. Draft trained by us: 5 full-attention layers, block size 16, conditioned on target layers 1, 9, 17, 25 and 33.</dd></div>
+          <div><dt>Dense draft data</dt><dd>Stage 1: the <a href="https://arxiv.org/abs/2602.06036">DFlash</a> recipe's ~800K prompts (Nemotron Post-Training V2 chat, code, math and STEM, plus CodeAlpaca-20k), responses regenerated by Qwen3-4B, up to 3,072 tokens, 6 epochs. Stage 2: 26.7K prompts of 4K-30K tokens (LongAlpaca-12k, GovReport train, arXiv-summarization train), responses regenerated by the target, up to 32,768 tokens, 2 epochs.</dd></div>
+          <div><dt>Prompts</dt><dd>Held-out ShareGPT (short), GovReport test (8K), PG-19 test (32K and longer): a document cut to the target length, then a summarisation instruction. No overlap with training data.</dd></div>
+          <div><dt>Serving</dt><dd>SGLang 0.5.14, DFlash worker (<code>DFlashWorkerV2</code>), one H100, greedy decoding, 256 new tokens per request. Outputs with and without speculation are identical, so speed is the only thing that changes.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="numbers" class="wide-section" aria-labelledby="numbers-heading" style="border-top:1px solid var(--line)">
+      <div class="reading-section first" style="margin-inline:0;padding-bottom:0">
+        <div class="section-label"><span class="section-number">03</span><h2 id="numbers-heading">The numbers</h2></div>
+        <div class="prose"><p>Speedup is DFlash decode tokens per second over plain decode tokens per second, per request. A round is one draft-and-verify cycle; its time is tau times the per-token time.</p></div>
+      </div>
+      <figure class="figure" style="margin-top:34px">
+        <div class="chart-legend" aria-hidden="true"><span><i class="swatch-line dashed"></i>Dense: Qwen3-4B + our DFlash draft</span><span><i class="swatch-line"></i>Hybrid: Qwen3.5-4B + z-lab DFlash</span></div>
+        <div class="chart-box"><div class="chart" id="chart-speedup" role="img" aria-label="Line chart of decode speedup against context length. Dense Qwen3-4B: 2.04x short, 2.14x at 8K, 1.76x at 32K, 1.81x at 64K, 1.83x at 128K. Hybrid Qwen3.5-4B: 1.64x short, 1.47x at 8K, 1.21x at 32K, 1.20x at 64K, 1.17x at 128K."></div></div>
+        <figcaption><span>Figure 1.</span> Decode speedup against context length, batch 1. The dense model holds about 1.8x out to 128K; the hybrid settles near 1.2x from 32K on. Hover a context to see tau.</figcaption>
+      </figure>
+      <div class="table-wrap">
+        <table>
+          <caption>Per-step and per-round times in ms. Step: one plain decode step of the target. Round: one speculative round.</caption>
+          <thead>
+            <tr><th>Context</th><th class="num">Dense step</th><th class="num">Dense round</th><th class="num">Dense tau</th><th class="num">Dense speedup</th><th class="num">Hybrid step</th><th class="num">Hybrid round</th><th class="num">Hybrid tau</th><th class="num">Hybrid speedup</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>Short</th><td class="num">4.18</td><td class="num">6.16</td><td class="num">3.01</td><td class="num">2.04x</td><td class="num">4.06</td><td class="num">7.36</td><td class="num">2.97</td><td class="num">1.64x</td></tr>
+            <tr><th>8K</th><td class="num">4.63</td><td class="num">6.72</td><td class="num">3.10</td><td class="num">2.14x</td><td class="num">4.17</td><td class="num">7.58</td><td class="num">2.67</td><td class="num">1.47x</td></tr>
+            <tr><th>32K</th><td class="num">5.84</td><td class="num">8.19</td><td class="num">2.47</td><td class="num">1.76x</td><td class="num">4.45</td><td class="num">7.95</td><td class="num">2.16</td><td class="num">1.21x</td></tr>
+            <tr><th>64K</th><td class="num">7.41</td><td class="num">9.91</td><td class="num">2.42</td><td class="num">1.81x</td><td class="num">4.80</td><td class="num">8.37</td><td class="num">2.09</td><td class="num">1.20x</td></tr>
+            <tr class="hl"><th>128K</th><td class="num">10.54</td><td class="num">13.42</td><td class="num">2.33</td><td class="num">1.83x</td><td class="num">5.52</td><td class="num">9.15</td><td class="num">1.94</td><td class="num">1.17x</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="section-source">The hybrid's step grows by 1.5 ms from short prompts to 128K; the dense model's grows by 6.4 ms. The hybrid's round costs 3.3-3.6 ms more than a plain step at every context; the dense model's costs 2.0-2.9 ms more.</p>
+    </section>
+
+    <section id="why" class="wide-section" aria-labelledby="why-heading" style="border-top:1px solid var(--line)">
+      <div class="reading-section first" style="margin-inline:0;padding-bottom:0">
+        <div class="section-label"><span class="section-number">04</span><h2 id="why-heading">Why the speedup shrinks</h2></div>
+        <div class="prose">
+          <p class="lead">Speedup is tau times the share of the round that a plain step would have cost anyway.</p>
+          <div class="equation" tabindex="0" role="region" aria-label="Speedup equation">speedup = tau × <span class="frac">(</span>target step ÷ round<span class="frac">)</span></div>
+          <p>At 128K the dense model gets 2.33 × 10.54 / 13.42 = 1.83x. The hybrid gets 1.94 × 5.52 / 9.15 = 1.17x. Give the hybrid the dense draft's tau and it still reaches only 2.33 × 0.60 = 1.41x.</p>
+          <div class="decomp" aria-label="Decomposition of the 128K gap">
+            <div><span class="v">1.83x</span><span class="k">Dense, 128K</span></div>
+            <div><span class="v">1.41x</span><span class="k">Hybrid share of round, dense tau: two thirds of the gap is the cheap target</span></div>
+            <div><span class="v">1.17x</span><span class="k">Hybrid, 128K: the last third is lower tau</span></div>
+          </div>
+          <p>At 32K the split is similar: 1.76x to 1.38x from the share of the round, then to 1.21x from tau. The two drafts were trained on different data, so the tau part of the gap is partly a draft-quality gap. The share-of-round part is not. It comes from the target.</p>
+        </div>
+      </div>
+      <figure class="figure" style="margin-top:40px">
+        <div class="chart-legend" aria-hidden="true"><span><i class="swatch-box"></i>Plain decode step: work the target does anyway</span><span><i class="swatch-box light"></i>Speculation overhead: draft, draft sampling, extra verify cost</span></div>
+        <div class="chart-box"><div class="chart" id="chart-round" role="img" aria-label="Stacked bars of round time. Dense 32K: step 5.84 ms plus overhead 2.35 ms. Hybrid 32K: step 4.45 ms plus overhead 3.50 ms. Dense 128K: step 10.54 ms plus overhead 2.88 ms. Hybrid 128K: step 5.52 ms plus overhead 3.63 ms."></div></div>
+        <figcaption><span>Figure 2.</span> One speculative round, split into the plain decode step it replaces and the overhead of speculating. The percentage is the step's share of the round; multiply by tau to get the speedup.</figcaption>
+      </figure>
+
+      <div class="subsection-heading"><h3>Where the hybrid's round goes</h3><p>CUDA-event GPU time for each stage of a round. A 16-token verify costs 5.49 ms against 4.06 ms for a 1-token decode step, and the draft side adds another 1.4 ms. Host work is 1.7-2.0 ms per round but overlaps the GPU; real GPU idle is about 0.6 ms per round. A torch-profiler trace with CPU activities suggested 1.3 ms of idle, which turned out to be profiler overhead. There is no large chunk of waste left: the round is mostly the two forward passes.</p></div>
+      <div class="table-wrap" style="margin-top:0">
+        <table>
+          <thead><tr><th>Stage (ms)</th><th class="num">Short, bs 1</th><th class="num">32K, bs 1</th><th class="num">32K, bs 8</th></tr></thead>
+          <tbody>
+            <tr><th>Draft forward</th><td class="num">0.90</td><td class="num">1.00</td><td class="num">1.51</td></tr>
+            <tr><th>Sample the draft block through the 248K-row lm_head</th><td class="num">0.48</td><td class="num">0.48</td><td class="num">0.53</td></tr>
+            <tr><th>Target verify of 16 tokens</th><td class="num">5.49</td><td class="num">6.00</td><td class="num">10.69</td></tr>
+            <tr><th>Prepare verify, commit GDN state, append draft KV</th><td class="num">0.22</td><td class="num">0.22</td><td class="num">0.49</td></tr>
+            <tr class="hl"><th>Whole round (GPU span)</th><td class="num">7.27</td><td class="num">7.89</td><td class="num">13.48</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="subsection-heading"><h3>Batching and memory</h3><p>At 32K the hybrid gains 1.11x at batch 8 and loses (0.95x) at batch 16, as verifying 16 tokens for every request becomes compute-bound. To commit the right recurrent state after verification, SGLang's verify kernel stores one fp32 Gated DeltaNet state per draft token per layer. With the draft loaded the server reserves 12.75 GB for these states, and the KV pool shrinks from 1.75M to 0.74M tokens. Verify kernels that avoid the stores are an active topic (<a href="https://arxiv.org/abs/2608.20961">TreeWY</a>, <a href="https://arxiv.org/abs/2607.16673">SpecLA</a>). In our microbenchmark they make no latency difference at batch 1 and save 3-4% of a long-context round at batch 8-16.</p></div>
+    </section>
+
+    <section id="tau" class="wide-section" aria-labelledby="tau-heading" style="border-top:1px solid var(--line)">
+      <div class="reading-section first" style="margin-inline:0;padding-bottom:0">
+        <div class="section-label"><span class="section-number">05</span><h2 id="tau-heading">Where does tau go?</h2></div>
+        <div class="prose">
+          <p class="lead">tau falls from 2.97 on short prompts to about 2.0 at 128K. More context for the draft does not bring it back.</p>
+          <p>The obvious suspect is the draft's sliding windows: five of its six layers see only the last 4,096 tokens. We changed the windows at inference time with the same weights. Greedy outputs stay identical, so any change in tau comes from the draft alone.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>tau for the same draft weights with the attention window changed at inference.</caption>
+          <thead><tr><th>Draft attention</th><th class="num">Short</th><th class="num">32K</th><th class="num">64K</th><th class="num">128K</th></tr></thead>
+          <tbody>
+            <tr><th>As trained: 5 × SWA-4096 + 1 full</th><td class="num">2.973</td><td class="num">2.192</td><td class="num">2.132</td><td class="num">2.034</td></tr>
+            <tr class="hl"><th>6 × SWA-4096 (nothing beyond 4K)</th><td class="num">2.927</td><td class="num">2.045</td><td class="num">2.063</td><td class="num">2.079</td></tr>
+            <tr><th>5 × SWA-1024 + 1 full</th><td class="num">2.971</td><td class="num">2.148</td><td class="num">2.080</td><td class="num">2.020</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose" style="margin-top:30px">
+        <p>Removing every path to context beyond 4K costs 7% of tau at 32K, 3% at 64K and nothing at 128K. The draft's one full-attention layer, trained to see everything, gets little from far context. Whatever makes long-context tokens harder to draft, more visibility alone does not fix it. That also caps what a long-range memory for the draft, such as reading the target's recurrent states, could add.</p>
+        <p>What did help is data. Fine-tuning the z-lab draft for 15,000 steps on responses that Qwen3.5-4B itself generated, including long-context prompts, raised tau from 2.25 to 2.34 at 32K and from 2.03 to 2.13 at 128K, and cost 1% at short context. It is the largest single gain we measured. It suggests that at long context the draft is limited mostly by how well it matches this particular target, not by its architecture. We do not yet know what the rest of the gap is.</p>
+      </div>
+    </section>
+
+    <section id="tried" class="reading-section" aria-labelledby="tried-heading">
+      <div class="section-label"><span class="section-number">06</span><h2 id="tried-heading">A few percent or nothing</h2></div>
+      <div class="prose">
+        <ol class="method-steps">
+          <li><div><h3>Smaller draft vocabulary</h3><span class="tag">+3% bs 1 · +6% bs 8</span></div><p>Sampling the draft block over the 64K ids Qwen3.5-4B uses most (98.2% coverage; verification keeps outputs exact) instead of all 248K costs about 1% of tau. <a href="https://arxiv.org/abs/2502.14856">FR-Spec</a> showed the same idea on dense models.</p></li>
+          <li><div><h3>Looped draft</h3><span class="tag">same tau · 3-10% slower</span></div><p>Running the draft's layers (or its last two) twice per block with gated residual updates, fine-tuned against a same-data control. tau matched the control within 0.3%. In our setup (warm start from the trained draft, loss only on the final pass) the gates never opened. A from-scratch recipe with a loss on every pass might do better, but the extra pass costs about 12% of a round, so it would need a large tau gain to pay.</p></li>
+          <li><div><h3>Linear-attention drafts</h3><span class="tag">0.73-0.76x of DFlash</span></div><p>On the dense model, replacing the draft's softmax attention with block linear attention added 1.4-1.6 ms per round and lost about 10% of tau. The draft's own long-context cost was only about 0.4 ms of the round at 32K, so there was little to save.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="trap" class="reading-section" aria-labelledby="trap-heading">
+      <div class="section-label"><span class="section-number">07</span><h2 id="trap-heading">A measurement trap</h2></div>
+      <div class="prose">
+        <p class="lead">With YaRN x4, SGLang's RoPE table ends at position 131,072. Decoding past it does not crash. It just produces garbage.</p>
+        <p>A model with a 32K native context and YaRN x4 gets rotary embeddings cached for 32,768 × 4 = 131,072 positions. We first benchmarked “128K” with 131,000-token prompts and 256 new tokens, so most decode steps ran past the end of the table. The dense model's tau dropped to 1.40 and its speedup to 1.10x, and a retrieval test of the target alone scored 0% at 131,072 tokens. With prompts cut to 130,500 tokens, tau is 2.33 (1.83x) and retrieval is 93%. If speculative decoding seems to collapse near 128K, check prompt length plus <code>max_new_tokens</code> against the RoPE table first.</p>
+        <p>Two smaller ones from the same project. SGLang's fused add-RMSNorm updates its residual argument in place, so reusing a residual tensor for an extra pass silently changes the stream; it cost us 4% of tau before we noticed. And flash-linear-attention's gated backward gave wrong gradients with Triton 3.4 to 3.7.0 on Hopper; 3.7.1 is fine.</p>
+      </div>
+    </section>
+
+    <section id="advice" class="reading-section" aria-labelledby="advice-heading">
+      <div class="section-label"><span class="section-number">08</span><h2 id="advice-heading">If you serve a hybrid model</h2></div>
+      <div class="prose">
+        <ol class="findings">
+          <li><span>Expect much smaller speculative-decoding gains at long context than on a dense model of the same size: about <strong>1.2x at batch 1</strong> here, and none at batch 16.</span></li>
+          <li><span>The fixed costs of the round matter more than usual: the draft forward, sampling through a large vocabulary, and the multi-token verify. A <strong>smaller draft vocabulary</strong> is a cheap 3-6%.</span></li>
+          <li><span><strong>Fine-tune the draft on the target's own outputs</strong> at the context lengths you serve. It is the one change that moved tau by more than a few percent.</span></li>
+          <li><span>Budget memory for <strong>verify-time recurrent states</strong>, or use a verify kernel that does not store them.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="caveats" class="reading-section" aria-labelledby="caveats-heading">
+      <div class="section-label"><span class="section-number">09</span><h2 id="caveats-heading">Caveats</h2></div>
+      <div class="prose">
+        <p>One model size (4B), one GPU (H100), one serving stack (SGLang 0.5.14), greedy decoding, 256-token outputs, and DFlash v1 drafts. We did not test DFlash2 (no Qwen3.5-4B checkpoint was available), EAGLE-style drafts, larger Qwen3.5 models, or sampling. The dense and hybrid drafts were trained on different data. Batch 8 and 16 results come from smaller prompt sets than batch 1.</p>
+      </div>
+    </section>
+
+    <section id="citation" class="reading-section citation" aria-labelledby="citation-heading">
+      <div class="section-label"><span class="section-number">10</span><h2 id="citation-heading">Citation</h2></div>
+      <div class="citation-content">
+        <div class="citation-top"><span>BibTeX</span><button type="button" id="copy-citation">Copy BibTeX</button></div>
+        <pre tabindex="0"><code id="bibtex">@misc{luo2026hybridsd,
+  title        = {Speculative Decoding Loses Its Long-Context Edge
+                  on Hybrid Models},
+  author       = {Haozheng Luo},
+  year         = {2026},
+  month        = oct,
+  howpublished = {GLB$^2$ research note},
+  url          = {https://growing-llms-beyond-boundaries.github.io/growing-llms-beyond-boundaries.io/blog/sd-hybrid-long-context/},
+  note         = {Qwen3.5-4B and Qwen3-4B with DFlash drafts,
+                  SGLang 0.5.14, one H100}
+}</code></pre>
+        <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span><a href="../../">GLB²</a> · Growing LLMs Beyond Boundaries · October 2026</span>
+    <span>All numbers measured on one H100 with SGLang 0.5.14</span>
+  </footer>
+</div>
+</div>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var C = { a: '#929292', b: '#242424', over: '#d0d0d0', grid: '#ececec', axis: '#d5d5d5', text: '#666666', ink: '#202020', surface: '#ffffff' };
+
+  function el(tag, attrs, text) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function tooltip(box) {
+    var t = box.querySelector('.tooltip');
+    if (!t) { t = document.createElement('div'); t.className = 'tooltip'; t.hidden = true; box.appendChild(t); }
+    return t;
+  }
+  function place(tip, box, x, y) {
+    var bw = box.clientWidth, tw = tip.offsetWidth;
+    var left = x + 14; if (left + tw > bw - 4) left = Math.max(4, x - tw - 14);
+    tip.style.left = left + 'px'; tip.style.top = Math.max(4, y - 10) + 'px';
+  }
+
+  var ctx = ['Short', '8K', '32K', '64K', '128K'];
+  var dense = [2.04, 2.14, 1.76, 1.81, 1.83], denseTau = [3.01, 3.10, 2.47, 2.42, 2.33];
+  var hyb = [1.64, 1.47, 1.21, 1.20, 1.17], hybTau = [2.97, 2.67, 2.16, 2.09, 1.94];
+
+  function drawSpeedup() {
+    var host = document.getElementById('chart-speedup'); if (!host) return;
+    var box = host.parentNode, W = host.clientWidth; if (!W) return;
+    var narrow = W < 520;
+    var H = narrow ? 280 : 330, m = { l: 40, r: narrow ? 92 : 128, t: 12, b: 34 };
+    var iw = W - m.l - m.r, ih = H - m.t - m.b, lo = 1.0, hi = 2.25;
+    var x = function (i) { return m.l + iw * i / (ctx.length - 1); };
+    var y = function (v) { return m.t + ih * (hi - v) / (hi - lo); };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, 'aria-hidden': 'true' });
+    [1.0, 1.5, 2.0].forEach(function (v) {
+      svg.appendChild(el('line', { x1: m.l, x2: m.l + iw, y1: y(v), y2: y(v), stroke: v === 1.0 ? C.axis : C.grid, 'stroke-width': 1 }));
+      svg.appendChild(el('text', { x: m.l - 8, y: y(v) + 4, 'text-anchor': 'end', 'font-size': 12, fill: C.text }, v.toFixed(1) + 'x'));
+    });
+    svg.appendChild(el('text', { x: m.l + 6, y: y(1.0) - 7, 'font-size': 11, fill: C.text }, 'plain decoding'));
+    ctx.forEach(function (c, i) {
+      svg.appendChild(el('text', { x: x(i), y: H - 10, 'text-anchor': 'middle', 'font-size': 12, fill: C.text }, c));
+    });
+    var cross = el('line', { x1: 0, x2: 0, y1: m.t, y2: m.t + ih, stroke: '#bdbdbd', 'stroke-width': 1, visibility: 'hidden' });
+    svg.appendChild(cross);
+    function series(vals, color, dash, label) {
+      var d = vals.map(function (v, i) { return (i ? 'L' : 'M') + x(i) + ' ' + y(v); }).join(' ');
+      var p = el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' });
+      if (dash) p.setAttribute('stroke-dasharray', '6 5');
+      svg.appendChild(p);
+      vals.forEach(function (v, i) {
+        svg.appendChild(el('circle', { cx: x(i), cy: y(v), r: 4.5, fill: color, stroke: C.surface, 'stroke-width': 2 }));
+      });
+      var last = vals.length - 1;
+      svg.appendChild(el('text', { x: x(last) + 12, y: y(vals[last]) - 3, 'font-size': 12, fill: C.ink, 'font-weight': 500 }, label));
+      svg.appendChild(el('text', { x: x(last) + 12, y: y(vals[last]) + 13, 'font-size': 12, fill: C.text }, vals[last].toFixed(2) + 'x'));
+    }
+    series(dense, C.a, true, 'Dense');
+    series(hyb, C.b, false, 'Hybrid');
+    var tip = tooltip(box);
+    var step = iw / (ctx.length - 1);
+    ctx.forEach(function (c, i) {
+      var hit = el('rect', { x: x(i) - step / 2, y: m.t, width: step, height: ih + m.b, fill: 'transparent' });
+      hit.style.cursor = 'default';
+      function show(ev) {
+        cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+        tip.innerHTML = '<b>' + c + ' context</b><br>Dense: ' + dense[i].toFixed(2) + 'x · tau ' + denseTau[i].toFixed(2) + '<br>Hybrid: ' + hyb[i].toFixed(2) + 'x · tau ' + hybTau[i].toFixed(2);
+        tip.hidden = false;
+        var r = box.getBoundingClientRect(), s = svg.getBoundingClientRect();
+        place(tip, box, s.left - r.left + x(i) * s.width / W, s.top - r.top + y(Math.max(dense[i], hyb[i])) * s.height / H);
+      }
+      hit.addEventListener('pointerenter', show); hit.addEventListener('pointermove', show);
+      hit.addEventListener('pointerleave', function () { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); });
+      svg.appendChild(hit);
+    });
+    host.replaceChildren(svg);
+  }
+
+  var rounds = [
+    { name: 'Dense', ctx: '32K', step: 5.84, round: 8.19, tau: 2.47, sp: 1.76 },
+    { name: 'Hybrid', ctx: '32K', step: 4.45, round: 7.95, tau: 2.16, sp: 1.21 },
+    { name: 'Dense', ctx: '128K', step: 10.54, round: 13.42, tau: 2.33, sp: 1.83 },
+    { name: 'Hybrid', ctx: '128K', step: 5.52, round: 9.15, tau: 1.94, sp: 1.17 }
+  ];
+
+  function drawRound() {
+    var host = document.getElementById('chart-round'); if (!host) return;
+    var box = host.parentNode, W = host.clientWidth; if (!W) return;
+    var narrow = W < 520;
+    var m = { l: narrow ? 84 : 112, r: narrow ? 58 : 84, t: 6, b: 30 };
+    var bh = narrow ? 24 : 28, gap = 10, groupGap = 18;
+    var H = m.t + rounds.length * bh + (rounds.length - 1) * gap + groupGap + m.b;
+    var iw = W - m.l - m.r, max = 14;
+    var sx = function (v) { return iw * v / max; };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, 'aria-hidden': 'true' });
+    [0, 5, 10].forEach(function (v) {
+      svg.appendChild(el('line', { x1: m.l + sx(v), x2: m.l + sx(v), y1: m.t, y2: H - m.b + 4, stroke: v === 0 ? C.axis : C.grid, 'stroke-width': 1 }));
+      svg.appendChild(el('text', { x: m.l + sx(v), y: H - 10, 'text-anchor': 'middle', 'font-size': 12, fill: C.text }, v + ' ms'));
+    });
+    var tip = tooltip(box);
+    rounds.forEach(function (r, i) {
+      var yy = m.t + i * (bh + gap) + (i >= 2 ? groupGap : 0);
+      svg.appendChild(el('text', { x: m.l - 10, y: yy + bh / 2 + 4, 'text-anchor': 'end', 'font-size': 12, fill: C.ink }, r.name + ' · ' + r.ctx));
+      var ws = sx(r.step), wo = sx(r.round - r.step);
+      var s1 = el('rect', { x: m.l, y: yy, width: Math.max(0, ws - 1), height: bh, rx: 2, fill: C.b });
+      var s2 = el('rect', { x: m.l + ws + 1, y: yy, width: Math.max(0, wo - 1), height: bh, rx: 2, fill: C.over });
+      svg.appendChild(s1); svg.appendChild(s2);
+      var share = Math.round(100 * r.step / r.round) + '%';
+      if (ws > 40) svg.appendChild(el('text', { x: m.l + 9, y: yy + bh / 2 + 4, 'font-size': 12, fill: '#ffffff', 'font-weight': 500 }, share));
+      svg.appendChild(el('text', { x: m.l + ws + wo + 8, y: yy + bh / 2 + 4, 'font-size': 12, fill: C.text }, r.round.toFixed(2) + ' ms'));
+      var hit = el('rect', { x: m.l, y: yy - gap / 2, width: iw, height: bh + gap, fill: 'transparent' });
+      function show(ev) {
+        tip.innerHTML = '<b>' + r.name + ', ' + r.ctx + '</b><br>Plain decode step ' + r.step.toFixed(2) + ' ms (' + share + ' of the round)<br>Overhead ' + (r.round - r.step).toFixed(2) + ' ms<br>Round ' + r.round.toFixed(2) + ' ms · tau ' + r.tau.toFixed(2) + ' → ' + r.sp.toFixed(2) + 'x';
+        tip.hidden = false;
+        var b = box.getBoundingClientRect(), s = svg.getBoundingClientRect();
+        place(tip, box, s.left - b.left + (m.l + ws + wo) * s.width / W, s.top - b.top + yy * s.height / H);
+      }
+      hit.addEventListener('pointerenter', show); hit.addEventListener('pointermove', show);
+      hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+      svg.appendChild(hit);
+    });
+    host.replaceChildren(svg);
+  }
+
+  var copyButton = document.getElementById('copy-citation');
+  var copyStatus = document.getElementById('copy-status');
+  if (copyButton) copyButton.addEventListener('click', function () {
+    var code = document.getElementById('bibtex');
+    function selectIt() {
+      var sel = window.getSelection(), range = document.createRange();
+      range.selectNodeContents(code); sel.removeAllRanges(); sel.addRange(range);
+      copyStatus.textContent = 'Citation selected. Press Ctrl+C or ⌘C to copy.';
+    }
+    try {
+      navigator.clipboard.writeText(code.textContent).then(function () {
+        copyButton.textContent = 'Copied';
+        copyStatus.textContent = 'BibTeX copied to clipboard.';
+        setTimeout(function () { copyButton.textContent = 'Copy BibTeX'; }, 2400);
+      }, selectIt);
+    } catch (e) { selectIt(); }
+  });
+
+  function drawAll() { drawSpeedup(); drawRound(); }
+  drawAll();
+  if (window.ResizeObserver) {
+    var last = 0;
+    new ResizeObserver(function () {
+      var w = document.getElementById('chart-speedup').clientWidth;
+      if (w !== last) { last = w; drawAll(); }
+    }).observe(document.getElementById('chart-speedup'));
+  } else {
+    window.addEventListener('resize', drawAll);
+  }
+})();
+</script>
+</body>
+</html>
